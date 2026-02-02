@@ -4,84 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kidscamp Monopoly Würfel</title>
-
-  <style>
-    body {
-      font-family: 'Arial Black', Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
-      background: linear-gradient(135deg, #00c6ff, #0072ff);
-      color: white;
-      text-align: center;
-    }
-
-    .logo {
-      background: #d32f2f;
-      color: white;
-      font-size: 2em;
-      font-weight: bold;
-      text-transform: uppercase;
-      letter-spacing: 3px;
-      border: 5px solid white;
-      border-radius: 10px;
-      padding: 10px 25px;
-      box-shadow: 0 4px 0 #b71c1c;
-      margin-bottom: 30px;
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    input {
-      font-size: 1.5em;
-      text-align: center;
-      padding: 10px;
-      border-radius: 10px;
-      border: none;
-      outline: none;
-      width: 100px;
-    }
-
-    button {
-      background: white;
-      color: #0072ff;
-      border: none;
-      padding: 15px 40px;
-      font-size: 1.5em;
-      border-radius: 15px;
-      cursor: pointer;
-    }
-
-    #dice {
-      font-size: 10em;
-      margin: 20px;
-      transition: transform 0.2s;
-    }
-
-    @keyframes shake {
-      0%, 100% { transform: rotate(0deg); }
-      25% { transform: rotate(10deg); }
-      75% { transform: rotate(-10deg); }
-    }
-
-    #result {
-      font-size: 15em;
-      font-weight: bold;
-      margin-top: 20px;
-      animation: pop 0.6s ease-out;
-    }
-
-    @keyframes pop {
-      0% { transform: scale(0); opacity: 0; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-  </style>
+  <link rel="stylesheet" href="index.css">
 </head>
 
 <body>
@@ -90,12 +13,21 @@
 
   <div id="setup">
     <h1>Geheime Zahl festlegen</h1>
-    <input id="secretNumber" type="number" min="1" max="6" placeholder="1–6">
-    <p>ENTER drücken</p>
+    <div class="setup-actions">
+      <input id="secretNumber" type="number" min="1" max="6" placeholder="1-6">
+      <button id="okButton">OK</button>
+    </div>
+    <p>ENTER drücken oder Zufall nutzen</p>
+    <div class="random-action">
+      <button id="randomSecret">Zufallszahl</button>
+    </div>
   </div>
 
   <div id="diceArea" class="hidden">
     <div id="dice">⚀</div>
+    <div class="controls">
+      <button id="rollButton">Würfeln</button>
+    </div>
     <div id="result" class="hidden"></div>
   </div>
 
@@ -103,21 +35,35 @@
     let secretNumber = null;
     let rolling = false;
     let finished = false;
+    let shouldConfirmUnload = false;
 
     const dice = document.getElementById("dice");
     const setup = document.getElementById("setup");
     const diceArea = document.getElementById("diceArea");
     const result = document.getElementById("result");
     const input = document.getElementById("secretNumber");
+    const okButton = document.getElementById("okButton");
+    const randomSecret = document.getElementById("randomSecret");
+    const rollButton = document.getElementById("rollButton");
+
+    function applySecretNumber(number) {
+      secretNumber = number;
+      shouldConfirmUnload = true;
+      setup.classList.add("hidden");
+      diceArea.classList.remove("hidden");
+    }
 
     function saveNumber() {
       const number = parseInt(input.value);
 
       if (number >= 1 && number <= 6) {
-        secretNumber = number;
-        setup.classList.add("hidden");
-        diceArea.classList.remove("hidden");
+        applySecretNumber(number);
       }
+    }
+
+    function setRandomSecret() {
+      const randomNumber = Math.floor(Math.random() * 6) + 1;
+      applySecretNumber(randomNumber);
     }
 
     function rollDice() {
@@ -137,6 +83,7 @@
           dice.textContent = getDiceSymbol(secretNumber);
           showResult(secretNumber);
           finished = true;
+          rollButton.classList.add("hidden");
         }
       }, 200);
     }
@@ -159,6 +106,16 @@
       } else {
         rollDice();
       }
+    });
+
+    randomSecret.addEventListener("click", setRandomSecret);
+    okButton.addEventListener("click", saveNumber);
+    rollButton.addEventListener("click", rollDice);
+
+    window.addEventListener("beforeunload", function (event) {
+      if (!shouldConfirmUnload) return;
+      event.preventDefault();
+      event.returnValue = "";
     });
   </script>
 
